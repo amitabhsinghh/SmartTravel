@@ -10,44 +10,41 @@ import SwiftUI
 
 struct ReviewTripView: View {
     let destination = "New York, NY, USA"
-    let fromDate = "04 Aug"
-    let toDate = "07 Aug"
+    let fromDate: Date?
+    let toDate: Date?
     let duration = "4 Days"
     let group = "Family"
     let budget = "Moderate"
-
+    
     var body: some View {
         VStack(spacing: 24) {
             Spacer().frame(height: 30)
-
+            
             // Header
             VStack(spacing: 8) {
                 Text("Review Your Trip")
                     .font(.title)
                     .fontWeight(.bold)
-
                 Text("Please review your selection before generating your trip.")
                     .font(.body)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
             }
             .padding(.horizontal)
-
+            
             // Trip Details
             VStack(spacing: 16) {
-                ReviewRow(icon: "📍", color: .pink.opacity(0.15), title: "Destination", value: destination)
-                ReviewRow(icon: "🗓️", color: .blue.opacity(0.15), title: "Travel Dates", value: "\(fromDate) to \(toDate) (\(duration))")
-                ReviewRow(icon: "🧑‍🤝‍🧑", color: .green.opacity(0.15), title: "Travel Group", value: group)
-                ReviewRow(icon: "💰", color: .yellow.opacity(0.2), title: "Budget", value: budget)
+                ReviewRow(icon: "📍", color: Color.pink.opacity(0.15), title: "Destination", value: destination)
+                ReviewRow(icon: "🗓️", color: Color.blue.opacity(0.15), title: "Travel Dates", value: "\(formattedDate(fromDate)) to \(formattedDate(toDate)) (\(duration))")
+                ReviewRow(icon: "🧑‍🤝‍🧑", color: Color.green.opacity(0.15), title: "Travel Group", value: group)
+                ReviewRow(icon: "💰", color: Color.yellow.opacity(0.2), title: "Budget", value: budget)
             }
             .padding(.horizontal)
-
+            
             Spacer()
-
-            // Continue Button
-            Button(action: {
-                print("Trip confirmed — generate itinerary!")
-            }) {
+            
+            // NavigationLink to TripLoadingView
+            NavigationLink(destination: TripLoadingView()) {
                 Text("Build My Trip")
                     .font(.title3)
                     .fontWeight(.bold)
@@ -61,6 +58,13 @@ struct ReviewTripView: View {
             .padding(.bottom, 30)
         }
     }
+    
+    func formattedDate(_ date: Date?) -> String {
+        guard let date = date else { return "--" }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
+    }
 }
 
 struct ReviewRow: View {
@@ -68,7 +72,7 @@ struct ReviewRow: View {
     let color: Color
     let title: String
     let value: String
-
+    
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             ZStack {
@@ -78,19 +82,16 @@ struct ReviewRow: View {
                 Text(icon)
                     .font(.title3)
             }
-
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.caption)
                     .foregroundColor(.gray)
                     .textCase(.uppercase)
-
                 Text(value)
                     .font(.body)
                     .fontWeight(.medium)
                     .foregroundColor(.black)
             }
-
             Spacer()
         }
         .padding()
@@ -100,7 +101,8 @@ struct ReviewRow: View {
     }
 }
 
-
-#Preview{
-    ReviewTripView()
+struct ReviewTripView_Previews: PreviewProvider {
+    static var previews: some View {
+        ReviewTripView(fromDate: Date(), toDate: Date().addingTimeInterval(86400 * 4))
+    }
 }

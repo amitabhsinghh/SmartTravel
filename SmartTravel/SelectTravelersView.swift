@@ -4,11 +4,13 @@
 //
 //  Created by Amitabh Singh on 3/29/25.
 //
+
+
 import SwiftUI
 
 struct SelectTravelersView: View {
     @State private var selectedOption: String = ""
-
+    
     struct TravelerOption: Identifiable {
         let id = UUID()
         let title: String
@@ -16,33 +18,31 @@ struct SelectTravelersView: View {
         let emoji: String
         let color: Color
     }
-
+    
     let travelerOptions: [TravelerOption] = [
         .init(title: "Just Me", subtitle: "Solo explorer vibes 🌍", emoji: "🧍‍♂️", color: Color.pink.opacity(0.2)),
         .init(title: "A Couple", subtitle: "Tandem adventures 💞", emoji: "💑", color: Color.purple.opacity(0.2)),
         .init(title: "Family", subtitle: "All together now 🧳", emoji: "👨‍👩‍👧‍👦", color: Color.green.opacity(0.2)),
         .init(title: "Friends", subtitle: "Thrill seekers squad 🎉", emoji: "🕺💃", color: Color.yellow.opacity(0.2))
     ]
-
+    
     var body: some View {
         GeometryReader { geo in
             VStack(spacing: 24) {
-                // Top Padding
                 Spacer().frame(height: 30)
-
+                
                 // Header
                 VStack(spacing: 8) {
                     Text("Who's joining the adventure?")
                         .font(.title2)
                         .fontWeight(.bold)
-
                     Text("Let us know who's coming along")
                         .font(.subheadline)
                         .foregroundColor(.gray)
                 }
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
-
+                
                 // Option Cards
                 VStack(spacing: 16) {
                     ForEach(travelerOptions) { option in
@@ -57,15 +57,12 @@ struct SelectTravelersView: View {
                                         .font(.title3)
                                         .fontWeight(.semibold)
                                         .foregroundColor(.black)
-
                                     Text(option.subtitle)
                                         .font(.body)
                                         .fontWeight(.medium)
                                         .foregroundColor(.gray)
                                 }
-
                                 Spacer()
-
                                 Text(option.emoji)
                                     .font(.title)
                             }
@@ -82,12 +79,10 @@ struct SelectTravelersView: View {
                         .padding(.horizontal)
                     }
                 }
-
-                // Continue Button pinned to bottom
-                Button(action: {
-                    // Navigate to next screen
-                }) {
-                    Text("Continue")
+                
+                // NavigationLink to TravelDateView
+                NavigationLink(destination: TravelDateView()) {
+                    Text("Next")
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)

@@ -12,17 +12,17 @@ import UIKit
 struct IntroView: View {
     var body: some View {
         ZStack {
-            // Background Image
+            // Background Image (ensure "introPage" is in your assets)
             Image("introPage")
                 .resizable()
                 .scaledToFill()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipped()
                 .ignoresSafeArea()
-
+            
             VStack {
                 Spacer()
-
+                
                 // White Card Container
                 VStack(spacing: 24) {
                     // Title
@@ -30,32 +30,28 @@ struct IntroView: View {
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.black)
-
-                    // Subtitle (2-line clean layout)
-                    Text("Effortlessly plan your next adventure.\nPersonalized itineraries. AI travel insights.")
+                    
+                    // Subtitle
+                    Text("Plan smarter. Travel easier.\nYour perfect trip, built just for you in minutes.")
                         .font(.body)
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
                         .padding(.horizontal, 24)
-
-                    // Get Started Button (centered and padded)
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            // Navigation action here
-                        }) {
-                            Text("Get Started")
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .padding(.vertical, 16)
-                                .padding(.horizontal, 40)
-                                .background(Color.black)
-                                .cornerRadius(30)
-                        }
-                        Spacer()
+                    
+                    // NavigationLink for Get Started (to go to AuthView)
+                    NavigationLink(destination: AuthView()) {
+                        Text("Get Started")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.vertical, 16)
+                            .padding(.horizontal, 40)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.black)
+                            .cornerRadius(30)
                     }
+                    .padding(.horizontal, 24)
                 }
                 .padding(.top, 30)
                 .padding(.bottom, 40)
@@ -89,6 +85,8 @@ struct RoundedCorner: Shape {
     }
 }
 
+
 #Preview {
     IntroView()
 }
+

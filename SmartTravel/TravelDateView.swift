@@ -165,32 +165,30 @@ import SwiftUI
 struct TravelDateView: View {
     @State private var fromDate: Date? = nil
     @State private var toDate: Date? = nil
-
+    
     var body: some View {
         VStack(spacing: 20) {
             Text("Select Travel Dates")
                 .font(.title)
                 .fontWeight(.bold)
                 .padding(.top)
-
+            
             Text(subtitle)
                 .font(.subheadline)
                 .foregroundColor(.gray)
-
+            
             CalendarGridView(fromDate: $fromDate, toDate: $toDate)
-
+            
             Spacer()
-
-            Button(action: {
-                print("From: \(String(describing: fromDate))")
-                print("To: \(String(describing: toDate))")
-            }) {
+            
+            // NavigationLink to ReviewTripView (passing selected dates)
+            NavigationLink(destination: ReviewTripView(fromDate: fromDate, toDate: toDate)) {
                 Text("Continue")
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(fromDate != nil && toDate != nil ? Color.black : Color.gray)
+                    .background((fromDate != nil && toDate != nil) ? Color.black : Color.gray)
                     .cornerRadius(14)
             }
             .disabled(fromDate == nil || toDate == nil)
@@ -199,7 +197,7 @@ struct TravelDateView: View {
         }
         .padding(.horizontal)
     }
-
+    
     var subtitle: String {
         if let from = fromDate, let to = toDate {
             return "Traveling from \(formatted(from)) to \(formatted(to))"
@@ -209,7 +207,7 @@ struct TravelDateView: View {
             return "Tap the first date to begin"
         }
     }
-
+    
     func formatted(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -220,17 +218,17 @@ struct TravelDateView: View {
 struct CalendarGridView: View {
     @Binding var fromDate: Date?
     @Binding var toDate: Date?
-
+    
     @State private var currentMonth: Date = Date()
     private let calendar = Calendar.current
-
+    
     private var daysInMonth: [Date] {
         let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: currentMonth))!
         return (0..<42).compactMap { offset in
             calendar.date(byAdding: .day, value: offset - calendar.component(.weekday, from: startOfMonth) + 1, to: startOfMonth)
         }
     }
-
+    
     var body: some View {
         VStack(spacing: 10) {
             // Month/Year Header + Navigation
@@ -240,14 +238,10 @@ struct CalendarGridView: View {
                         currentMonth = calendar.date(byAdding: .month, value: -1, to: currentMonth) ?? currentMonth
                     }
                 }
-
                 Spacer()
-
                 Text(monthYearString(from: currentMonth))
                     .font(.headline)
-
                 Spacer()
-
                 Button("Next") {
                     withAnimation {
                         currentMonth = calendar.date(byAdding: .month, value: 1, to: currentMonth) ?? currentMonth
@@ -255,7 +249,7 @@ struct CalendarGridView: View {
                 }
             }
             .padding(.horizontal)
-
+            
             // Weekday Headers
             HStack {
                 ForEach(0..<calendar.shortWeekdaySymbols.count, id: \.self) { index in
@@ -265,12 +259,11 @@ struct CalendarGridView: View {
                         .foregroundColor(.gray)
                 }
             }
-
+            
             // Date Grid
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 8) {
                 ForEach(daysInMonth, id: \.self) { date in
                     let isInMonth = calendar.isDate(date, equalTo: currentMonth, toGranularity: .month)
-
                     Button(action: {
                         handleDateSelection(date)
                     }) {
@@ -288,7 +281,7 @@ struct CalendarGridView: View {
         .background(Color(.systemGray6))
         .cornerRadius(16)
     }
-
+    
     private func handleDateSelection(_ date: Date) {
         if fromDate == nil || (fromDate != nil && toDate != nil) {
             fromDate = date
@@ -300,10 +293,10 @@ struct CalendarGridView: View {
             toDate = nil
         }
     }
-
+    
     private func backgroundColor(for date: Date) -> Color {
         guard let from = fromDate else { return .clear }
-
+        
         if let to = toDate {
             if calendar.isDate(date, inSameDayAs: from) || calendar.isDate(date, inSameDayAs: to) {
                 return .black
@@ -313,21 +306,18 @@ struct CalendarGridView: View {
         } else if calendar.isDate(date, inSameDayAs: from) {
             return .black
         }
-
         return .clear
     }
-
+    
     private func textColor(for date: Date, inMonth: Bool) -> Color {
         if !inMonth { return .gray }
-
         if calendar.isDate(date, inSameDayAs: fromDate ?? Date()) ||
             calendar.isDate(date, inSameDayAs: toDate ?? Date()) {
             return .white
         }
-
         return .black
     }
-
+    
     private func monthYearString(from date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM yyyy"

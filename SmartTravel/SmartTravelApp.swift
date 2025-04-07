@@ -11,7 +11,11 @@ import SwiftUI
 struct SmartTravelApp: App {
     var body: some Scene {
         WindowGroup {
-            IntroView()
+            NavigationView {
+                IntroView()
+            }
+            .navigationViewStyle(StackNavigationViewStyle())
         }
     }
 }
+

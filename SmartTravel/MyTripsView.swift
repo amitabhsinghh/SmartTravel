@@ -4,7 +4,6 @@
 //
 //  Created by Amitabh Singh on 3/29/25.
 //
-
 import SwiftUI
 
 struct MyTripsView: View {
@@ -17,9 +16,7 @@ struct MyTripsView: View {
                         Text("My Trip")
                             .font(.largeTitle)
                             .fontWeight(.bold)
-
                         Spacer()
-
                         Button(action: {
                             print("Add new trip")
                         }) {
@@ -28,7 +25,7 @@ struct MyTripsView: View {
                         }
                     }
                     .padding(.horizontal)
-
+                    
                     // Trip Card
                     VStack(alignment: .leading, spacing: 12) {
                         Image("dummy")
@@ -37,19 +34,17 @@ struct MyTripsView: View {
                             .frame(height: 180)
                             .clipped()
                             .cornerRadius(16)
-
+                        
                         HStack {
                             Text("04 Aug 2024")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
-
                             Spacer()
-
                             Label("Family", systemImage: "car.fill")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
                         }
-
+                        
                         Button(action: {
                             print("See your plan tapped")
                         }) {
@@ -66,7 +61,7 @@ struct MyTripsView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(20)
                     .padding(.horizontal)
-
+                    
                     // Mini Summary
                     HStack(spacing: 12) {
                         Image("dummy")
@@ -74,22 +69,21 @@ struct MyTripsView: View {
                             .scaledToFill()
                             .frame(width: 60, height: 60)
                             .cornerRadius(12)
-
+                        
                         VStack(alignment: .leading) {
                             Text("04 Aug 2024")
                                 .font(.subheadline)
                                 .foregroundColor(.primary)
-
                             Text("Travelling: Family")
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
-
+                        
                         Spacer()
                     }
                     .padding(.horizontal)
                     .padding(.bottom, 20)
-
+                    
                     Spacer()
                 }
                 .navigationBarHidden(true)
@@ -97,14 +91,14 @@ struct MyTripsView: View {
             .tabItem {
                 Label("My Trip", systemImage: "mappin.and.ellipse")
             }
-
-            // --- Discover Tab ---
+            
+            // --- Discover Tab Placeholder ---
             DiscoverView()
                 .tabItem {
                     Label("Discover", systemImage: "globe")
                 }
-
-            // --- Profile Tab ---
+            
+            // --- Profile Tab Placeholder ---
             ProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "person.crop.circle")
@@ -121,7 +115,6 @@ struct DiscoverView: View {
             Image(systemName: "globe")
                 .font(.system(size: 40))
                 .padding(.bottom, 10)
-
             Text("Discover")
                 .font(.title2)
                 .fontWeight(.medium)
@@ -138,7 +131,6 @@ struct ProfileView: View {
             Image(systemName: "person.crop.circle")
                 .font(.system(size: 40))
                 .padding(.bottom, 10)
-
             Text("Profile")
                 .font(.title2)
                 .fontWeight(.medium)
@@ -146,6 +138,7 @@ struct ProfileView: View {
         }
     }
 }
+
 
 #Preview {
     MyTripsView()

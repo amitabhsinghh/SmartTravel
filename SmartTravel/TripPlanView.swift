@@ -17,14 +17,13 @@ struct TripPlanView: View {
                     .scaledToFill()
                     .frame(height: 230)
                     .clipped()
-
+                
                 VStack(spacing: 24) {
                     // Trip Summary
                     VStack(alignment: .leading, spacing: 8) {
                         Label("04 Aug 2024 - 07 Aug 2024", systemImage: "calendar")
                             .font(.subheadline)
                             .foregroundColor(.gray)
-
                         Label("Travel Group: Family", systemImage: "person.3.fill")
                             .font(.subheadline)
                             .foregroundColor(.gray)
@@ -34,13 +33,12 @@ struct TripPlanView: View {
                     .background(Color.white)
                     .cornerRadius(16)
                     .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-
-                    // Flights
+                    
+                    // Flights Section
                     VStack(alignment: .leading, spacing: 16) {
                         Text("🛫 Recommended Flights")
                             .font(.headline)
                             .fontWeight(.bold)
-
                         FlightCard(airline: "JetStream Air", price: "$350")
                         FlightCard(airline: "Nimbus Airways", price: "$400")
                         FlightCard(airline: "SkyHop Airlines", price: "$380")
@@ -50,13 +48,12 @@ struct TripPlanView: View {
                     .background(Color.white)
                     .cornerRadius(16)
                     .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-
-                    // Hotels
+                    
+                    // Hotels Section
                     VStack(alignment: .leading, spacing: 16) {
                         Text("🏨 Where You'll Stay")
                             .font(.headline)
                             .fontWeight(.bold)
-
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
                                 HotelCard(
@@ -79,34 +76,29 @@ struct TripPlanView: View {
                     .background(Color.white)
                     .cornerRadius(16)
                     .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-
-                    // Plan Details
+                    
+                    // Itinerary Overview Section
                     VStack(alignment: .leading, spacing: 16) {
                         Text("🗺️ Itinerary Overview")
                             .font(.headline)
                             .fontWeight(.bold)
-
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Day 1: Touchdown & Explore")
                                 .font(.subheadline)
                                 .fontWeight(.bold)
-
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("Arrival in New York City")
                                     .font(.body)
                                     .fontWeight(.semibold)
-
                                 Image("arrival")
                                     .resizable()
                                     .scaledToFill()
                                     .frame(height: 150)
                                     .clipped()
                                     .cornerRadius(12)
-
                                 Text("**Hotel Check-in:** Aurora Grand NYC")
                                 Text("**Highlights:** Times Square, street food crawl")
                                 Text("**Ticket Cost:** Free")
-
                                 HStack {
                                     Spacer()
                                     Button(action: {}) {
@@ -121,7 +113,7 @@ struct TripPlanView: View {
                             .padding()
                             .background(Color.white)
                             .cornerRadius(16)
-                            .shadow(color: .black.opacity(0.05), radius: 3, x: 0, y: 2)
+                            .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 2)
                         }
                     }
                     .padding(.horizontal)
@@ -134,7 +126,6 @@ struct TripPlanView: View {
     }
 }
 
-// MARK: - Flight Card
 struct FlightCard: View {
     let airline: String
     let price: String
@@ -147,9 +138,7 @@ struct FlightCard: View {
                 Text("Price: \(price)")
                     .font(.subheadline)
             }
-
             Spacer()
-
             Button(action: {
                 print("Booking \(airline)")
             }) {
@@ -167,7 +156,6 @@ struct FlightCard: View {
     }
 }
 
-// MARK: - Hotel Card
 struct HotelCard: View {
     let image: String
     let name: String
@@ -182,19 +170,16 @@ struct HotelCard: View {
                 .frame(width: 160, height: 100)
                 .clipped()
                 .cornerRadius(12)
-
             Text(name)
                 .font(.subheadline)
                 .fontWeight(.medium)
                 .lineLimit(1)
-
             HStack {
                 Text(rating)
                 Text("💰 \(price)")
             }
             .font(.caption)
             .foregroundColor(.gray)
-
             HStack {
                 Button(action: {}) {
                     Image(systemName: "bed.double.fill")
@@ -203,7 +188,6 @@ struct HotelCard: View {
                         .foregroundColor(.white)
                         .cornerRadius(8)
                 }
-
                 Button(action: {}) {
                     Image(systemName: "paperplane.fill")
                         .padding()
