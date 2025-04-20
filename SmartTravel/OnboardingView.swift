@@ -12,44 +12,48 @@ struct OnboardingView: View {
 
   var body: some View {
     ZStack {
-      // 1) Background image
+      // Background
       Image("introPage")
         .resizable()
         .scaledToFill()
         .ignoresSafeArea()
 
-      // 2) Semi‑transparent dark overlay for contrast
+      // Dark overlay for contrast
       Color.black.opacity(0.4)
         .ignoresSafeArea()
 
-      // 3) Content on top
-      VStack(spacing: 24) {
+      // Content
+      VStack(spacing: 30) {
         Spacer()
 
-        VStack(spacing: 12) {
-          Text("Smart Travel")
-            .font(.largeTitle)
-            .fontWeight(.bold)
-            .foregroundColor(.white)
-            .shadow(color: .black.opacity(0.8), radius: 2, x: 0, y: 1)
+        // Title
+        Text("Smart Travel")
+          .font(.largeTitle)
+          .fontWeight(.bold)
+          .foregroundColor(.white)
+          .shadow(color: .black.opacity(0.8), radius: 2, x: 0, y: 1)
 
-          Text("Effortlessly plan your next adventure, get personalized itineraries with AI travel insights.")
-            .font(.body)
-            .multilineTextAlignment(.center)
-            .foregroundColor(.white)
-            .shadow(color: .black.opacity(0.6), radius: 1, x: 0, y: 1)
-            .padding(.horizontal, 40)
+        // ► Split the subtitle into multiple Texts
+        VStack(spacing: 6) {
+          Text("Effortlessly plan your next adventure,")
+          Text("get personalized itineraries")
+          Text("with AI travel insights.")
         }
+        .font(.body)
+        .foregroundColor(.white)
+        .multilineTextAlignment(.center)
+        .shadow(color: .black.opacity(0.6), radius: 1, x: 0, y: 1)
+        .padding(.horizontal, 40)
 
         Spacer()
 
-        // 4) Button with a max width
+        // Button
         Button(action: onComplete) {
           Text("Get Started")
             .font(.headline)
             .foregroundColor(.white)
             .padding(.vertical, 14)
-            .frame(maxWidth: 240)            // ← limit the width here
+            .frame(maxWidth: 240)
             .background(Color.blue)
             .cornerRadius(10)
         }
@@ -58,6 +62,7 @@ struct OnboardingView: View {
     }
   }
 }
+
 
 
 #Preview {

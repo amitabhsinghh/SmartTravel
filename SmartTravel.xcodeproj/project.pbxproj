@@ -10,9 +10,33 @@
 		EBA3BE082DB4A48600C56614 /* SmartTravel.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SmartTravel.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		EBA3BE4F2DB4EA2D00C56614 /* Exceptions for "SmartTravel" folder in "SmartTravel" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				TripBuilderAI.swift,
+			);
+			target = EBA3BE072DB4A48600C56614 /* SmartTravel */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		EBA3BE502DB4EA2D00C56614 /* Exceptions for "SmartTravel" folder in "Copy Bundle Resources" phase from "SmartTravel" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = EBA3BE062DB4A48600C56614 /* Resources */;
+			membershipExceptions = (
+				TripBuilderAI.swift,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		EBA3BE0A2DB4A48600C56614 /* SmartTravel */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				EBA3BE4F2DB4EA2D00C56614 /* Exceptions for "SmartTravel" folder in "SmartTravel" target */,
+				EBA3BE502DB4EA2D00C56614 /* Exceptions for "SmartTravel" folder in "Copy Bundle Resources" phase from "SmartTravel" target */,
+			);
 			path = SmartTravel;
 			sourceTree = "<group>";
 		};
