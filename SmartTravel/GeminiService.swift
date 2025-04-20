@@ -10,7 +10,7 @@ import Foundation
 
 enum GeminiService {
 
-    private static let apiKey = ""
+    private static let apiKey = "Insert Your API Key Here"
     private static let model  = "gemini-2.0-flash"          // or “…-pro”
     private static let url = URL(string:
         "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent?key=\(apiKey)"
