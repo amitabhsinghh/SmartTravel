@@ -1,35 +1,18 @@
 //
-//  ItineraryView.swift
+//  ActivityCard.swift
 //  SmartTravel
 //
 //  Created by Amitabh Singh on 4/20/25.
-//
+
 
 import SwiftUI
 
-struct ItineraryView: View {
-    let days: [DayPlan]
-
-    var body: some View {
-        List {
-            ForEach(days) { day in
-                Section(header: Text("\(day.date) – \(day.title)").font(.headline)) {
-                    ForEach(day.events) { event in
-                        EventRowView(event: event)
-                    }
-                }
-            }
-        }
-        .navigationTitle("Your Trip")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-struct EventRowView: View {
+struct ActivityCard: View {
     let event: Event
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
+            // time column
             VStack(alignment: .trailing) {
                 Text(event.start)
                     .bold()
@@ -39,8 +22,9 @@ struct EventRowView: View {
                         .foregroundColor(.secondary)
                 }
             }
-            .frame(width: 56)
+            .frame(width: 80)
 
+            // details
             VStack(alignment: .leading, spacing: 4) {
                 Text(event.name)
                     .font(.body)
@@ -54,7 +38,14 @@ struct EventRowView: View {
                         .foregroundColor(.gray)
                 }
             }
+
+            Spacer()
         }
-        .padding(.vertical, 4)
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        )
     }
 }

@@ -7,25 +7,32 @@
 
 import SwiftUI
 
+/// Bundle up your wizard selections
+struct ReviewTripData {
+    let destination: String
+    let startDate:   Date
+    let endDate:     Date
+    let party:       TravelParty
+    let budget:      BudgetChoice
+}
+
 struct ReviewTripView: View {
-    // ── Input from previous screens ──
     let destination: String
     let startDate:   Date
     let endDate:     Date
     let party:       TravelParty
     let budget:      BudgetChoice
 
-    // ── Local state ──
-    @State private var isLoading = false
-    @State private var plans: [DayPlan] = []
-    @State private var showItinerary = false
-    @State private var errorMsg: String?
+    @EnvironmentObject private var viewModel: TripViewModel
 
-    // MARK: – Derived display text
     private var dateRangeText: String {
-        let df = DateFormatter(); df.dateFormat = "dd MMM"
-        let span = (Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0) + 1
-        return "\(df.string(from: startDate)) to \(df.string(from: endDate)) (\(span) day\(span > 1 ? "s" : ""))"
+        let df = DateFormatter()
+        df.dateFormat = "dd MMM"
+        let span = (Calendar.current
+                        .dateComponents([.day],
+                                        from: startDate,
+                                        to: endDate).day ?? 0) + 1
+        return "\(df.string(from: startDate)) to \(df.string(from: endDate)) (\(span) day\(span>1 ? "s":""))"
     }
 
     private var budgetInfo: (text: String, icon: String) {
@@ -36,156 +43,99 @@ struct ReviewTripView: View {
     }
 
     var body: some View {
-        VStack(spacing: 24) {
-
-            // HEADER
-            VStack(spacing: 8) {
-                Text("Review Your Trip").font(.title2).bold()
-                Text("Please review your selection before generating your trip.")
-                    .font(.subheadline).foregroundColor(.secondary)
-            }
-            .padding(.top, 32)
-
-            // DETAILS
-            VStack(spacing: 12) {
-                row(Image(systemName: "mappin.and.ellipse").foregroundColor(.red),
-                    "DESTINATION", destination)
-
-                row(Image(systemName: "calendar").foregroundColor(.blue),
-                    "TRAVEL DATES", dateRangeText)
-
-                row(Text(party.icon).font(.title2),
-                    "TRAVEL GROUP", party.rawValue)
-
-                row(Text(budgetInfo.icon).font(.title2),
-                    "BUDGET", budgetInfo.text)
-            }
-            .padding(.horizontal)
-
-            Spacer()
-
-            // BUILD BUTTON
-            Button(action: generateItinerary) {
-                if isLoading {
-                    ProgressView().progressViewStyle(.circular)
-                        .frame(maxWidth: .infinity)
-                } else {
-                    Text("Build My Trip")
-                        .font(.headline).foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
+        ZStack {
+            // ── Review UI ─────────────────────────────────
+            VStack(spacing: 24) {
+                VStack(spacing: 8) {
+                    Text("Review Your Trip")
+                        .font(.title2).bold()
+                    Text("Please review your selection before generating your trip.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
+                .padding(.top, 32)
+
+                VStack(spacing: 12) {
+                    row(icon: Image(systemName: "mappin.and.ellipse").foregroundColor(.red),
+                        label: "DESTINATION",   value: destination)
+                    row(icon: Image(systemName: "calendar").foregroundColor(.blue),
+                        label: "TRAVEL DATES",  value: dateRangeText)
+                    row(icon: Text(party.icon).font(.title2),
+                        label: "TRAVEL GROUP",  value: party.rawValue)
+                    row(icon: Text(budgetInfo.icon).font(.title2),
+                        label: "BUDGET",        value: budgetInfo.text)
+                }
+                .padding(.horizontal)
+
+                Spacer()
+
+                Button {
+                    let info = ReviewTripData(
+                        destination: destination,
+                        startDate:   startDate,
+                        endDate:     endDate,
+                        party:       party,
+                        budget:      budget
+                    )
+                    Task { await viewModel.generate(from: info) }
+                } label: {
+                    Text("Build My Trip")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.black)
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+                }
+                .padding(.bottom, 20)
             }
-            .padding()
-            .background(isLoading ? Color.gray : Color.black)
-            .cornerRadius(12)
-            .padding(.horizontal)
-            .disabled(isLoading)
-            .padding(.bottom, 20)
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
+
+            // ── Hidden navigation links ────────────────────
+            NavigationLink(
+                destination: LoadingView(viewModel: viewModel),
+                isActive:   $viewModel.isLoading
+            ) { EmptyView() }
+            .hidden()
+
+            NavigationLink(
+              destination:
+                ItineraryResultsView(
+                  trip: nil,
+                  initialDestination: destination,
+                  viewModel: viewModel
+                ),
+              isActive: $viewModel.showResult
+            ) { EmptyView() }
+            .hidden()
         }
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(isPresented: $showItinerary) {
-            ItineraryView(days: plans)
-        }
-        .alert("Error", isPresented: .constant(errorMsg != nil)) {
-            Button("OK") { errorMsg = nil }
-        } message: { Text(errorMsg ?? "") }
-    }
-
-    // MARK: – Networking
-
-    private func generateItinerary() {
-        guard !isLoading else { return }
-        isLoading = true
-
-        Task {
-            do {
-                plans = try await buildStructuredPlan()
-                showItinerary = true
-            } catch {
-                errorMsg = error.localizedDescription
-            }
-            isLoading = false
+        .navigationBarBackButtonHidden(viewModel.showResult)
+        .alert("Error", isPresented: .constant(viewModel.errorMsg != nil)) {
+            Button("OK") { viewModel.errorMsg = nil }
+        } message: {
+            Text(viewModel.errorMsg ?? "")
         }
     }
-
-    /// Calls Gemini; converts strict JSON → `[DayPlan]`
-    private func buildStructuredPlan() async throws -> [DayPlan] {
-        let df = DateFormatter(); df.dateFormat = "yyyy-MM-dd"
-        let prompt = """
-        You are a JSON‑ONLY API. Respond with **nothing but** a valid JSON array.
-
-        Generate a detailed, day‑by‑day travel itinerary for:
-
-        • destination: "\(destination)"
-        • dates: "\(df.string(from: startDate))" – "\(df.string(from: endDate))"
-        • travelers: "\(party.rawValue)"
-        • budget: "\(budgetInfo.text)"
-
-        Each array element must have exactly these keys:
-          "date"       – string "YYYY-MM-DD"
-          "title"      – short day title
-          "activities" – array of objects {
-             "start": "HH:MM",
-             "end":   "HH:MM",
-             "name":  "Activity name"
-          }
-
-        Return ONLY the JSON array, with no markdown fences or commentary.
-        """
-
-        let raw: String
-        do {
-            raw = try await GeminiService.generateItinerary(prompt: prompt, debugPrint: true)
-        } catch let GeminiService.GeminiError.http(code, body) {
-            throw NSError(domain: "HTTP", code: code, userInfo: [
-                NSLocalizedDescriptionKey: "Gemini HTTP \(code):\n\(body)"
-            ])
-        }
-
-        let cleaned = raw
-            .replacingOccurrences(of: "```json", with: "")
-            .replacingOccurrences(of: "```", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        let json: String
-        if let start = cleaned.firstIndex(of: "["),
-           let end   = cleaned.lastIndex(of: "]"),
-           start < end {
-            json = String(cleaned[start...end])
-        } else {
-            json = cleaned
-        }
-
-        guard let data = json.data(using: .utf8) else {
-            throw NSError(domain: "Parse", code: 0, userInfo: [
-                NSLocalizedDescriptionKey: "Invalid UTF‑8 from Gemini"
-            ])
-        }
-
-        do {
-            return try JSONDecoder().decode([DayPlan].self, from: data)
-        } catch {
-            let preview = json.prefix(800)
-            throw NSError(domain: "Parse", code: 1, userInfo: [
-                NSLocalizedDescriptionKey: "Failed to decode JSON:\n\n\(preview)"
-            ])
-        }
-    }
-
-    // MARK: – UI helpers
 
     @ViewBuilder
-    private func row<Icon: View>(_ icon: Icon,
-                                 _ label: String,
-                                 _ value: String) -> some View {
+    private func row<Icon: View>(
+        icon: Icon,
+        label: String,
+        value: String
+    ) -> some View {
         HStack(spacing: 16) {
-            icon.frame(width: 36, height: 36)
-                .background(Color(.systemGray6)).cornerRadius(8)
-
+            icon
+                .frame(width: 36, height: 36)
+                .background(Color(.systemGray6))
+                .cornerRadius(8)
             VStack(alignment: .leading, spacing: 2) {
-                Text(label).font(.caption).foregroundColor(.secondary)
-                Text(value).font(.headline)
+                Text(label)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Text(value)
+                    .font(.headline)
             }
             Spacer()
         }
