@@ -5,14 +5,6 @@
 //  Created by Amitabh Singh on 4/20/25.
 //
 
-
-
-//
-//  GeminiService.swift
-//  SmartTravel
-//
-//  Switched to chat‑bison‑001 + v1 path.
-//
 import Foundation
 
 enum GeminiService {
