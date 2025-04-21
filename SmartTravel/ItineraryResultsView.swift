@@ -3,19 +3,17 @@
 //  SmartTravel
 //
 //  Created by Amitabh Singh on 4/20/25.
-//
+
 import SwiftUI
 import CoreData
+import UIKit  // for popToRoot()
 
 struct ItineraryResultsView: View {
-    /// non‑nil for a saved trip, `nil` when building a brand‑new trip
     let trip: Trip?
     let initialDestination: String?
     @ObservedObject var viewModel: TripViewModel
 
     @Environment(\.managedObjectContext) private var viewContext
-    @Environment(\.presentationMode)  private var presentationMode
-
     @State private var selectedDay = 0
 
     var body: some View {
@@ -25,26 +23,20 @@ struct ItineraryResultsView: View {
             timeline
         }
         .onAppear(perform: loadIfExisting)
-        // hide the system back‑arrow when we're looking at a saved trip
         .navigationBarBackButtonHidden(trip != nil)
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            // ── New‑trip flow: Cancel + Save ─────────────────
             if trip == nil {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel", action: cancelAll)
+                    Button("Cancel", action: popToRoot)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save",   action: saveAndExit)
+                    Button("Save",   action: didSave)
                 }
-            }
-            // ── Saved‑trip flow: single custom Back ─────────
-            else {
+            } else {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        presentationMode.wrappedValue.dismiss()
-                    } label: {
+                    Button { popToRoot() } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "chevron.left")
                             Text("Back")
@@ -55,8 +47,6 @@ struct ItineraryResultsView: View {
         }
     }
 
-    // MARK: – Subviews
-
     private var daySelector: some View {
         let plans = viewModel.generatedPlans
         return ScrollView(.horizontal, showsIndicators: false) {
@@ -66,7 +56,8 @@ struct ItineraryResultsView: View {
                         Text("Day \(String(format: "%02d", idx+1))")
                             .font(.subheadline.bold())
                         Text(plan.date)
-                            .font(.caption).foregroundColor(.secondary)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                         Rectangle()
                             .fill(idx == selectedDay ? Color.blue : Color.clear)
                             .frame(height: 2)
@@ -74,7 +65,8 @@ struct ItineraryResultsView: View {
                     .onTapGesture { selectedDay = idx }
                 }
                 if trip == nil {
-                    Button { /* optional: add another day */ } label: {
+                    // allow adding days in new‑trip flow if needed
+                    Button { } label: {
                         Image(systemName: "plus.circle")
                             .font(.title2)
                             .foregroundColor(.blue)
@@ -97,12 +89,17 @@ struct ItineraryResultsView: View {
             ScrollView {
                 LazyVStack(spacing: 24) {
                     ForEach(Array(events.enumerated()), id: \.offset) { idx, event in
-                        HStack(alignment: .top, spacing: 12) {
-                            timelineIndicator(idx: idx, total: events.count)
-                            ActivityCard(event: event)
-                                .frame(maxWidth: .infinity)
+                        NavigationLink {
+                            // Push into your detail screen
+                            ActivityDetailView(event: event)
+                        } label: {
+                            HStack(alignment: .top, spacing: 12) {
+                                timelineIndicator(idx: idx, total: events.count)
+                                ActivityCard(event: event)
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .padding(.horizontal)
                         }
-                        .padding(.horizontal)
                     }
                 }
                 .padding(.vertical)
@@ -110,6 +107,7 @@ struct ItineraryResultsView: View {
         )
     }
 
+    // small circle + line indicator
     private func timelineIndicator(idx: Int, total: Int) -> some View {
         VStack {
             ZStack {
@@ -131,8 +129,6 @@ struct ItineraryResultsView: View {
         .padding(.top, 4)
     }
 
-    // MARK: – Helpers
-
     private var navigationTitle: String {
         if let trip = trip {
             return trip.destination ?? ""
@@ -142,42 +138,45 @@ struct ItineraryResultsView: View {
     }
 
     private func loadIfExisting() {
-        guard
-          let trip = trip,
-          viewModel.generatedPlans.isEmpty,
-          let data = trip.details,
-          let plans = try? JSONDecoder().decode([DayPlan].self, from: data)
+        guard let trip = trip,
+              let data = trip.details,
+              let plans = try? JSONDecoder().decode([DayPlan].self, from: data)
         else { return }
+
         viewModel.generatedPlans = plans
+        selectedDay = 0
     }
 
-    private func saveAndExit() {
+    private func didSave() {
         let newTrip = Trip(context: viewContext)
         newTrip.destination = initialDestination
-        if let ds = viewModel.generatedPlans.first?.date,
-           let d1 = isoFormatter.date(from: ds) {
+        if let firstDate = viewModel.generatedPlans.first?.date,
+           let d1 = isoFormatter.date(from: firstDate) {
             newTrip.startDate = d1
         }
-        if let de = viewModel.generatedPlans.last?.date,
-           let d2 = isoFormatter.date(from: de) {
+        if let lastDate = viewModel.generatedPlans.last?.date,
+           let d2 = isoFormatter.date(from: lastDate) {
             newTrip.endDate = d2
         }
         if let data = try? JSONEncoder().encode(viewModel.generatedPlans) {
             newTrip.details = data
         }
         try? viewContext.save()
-        cancelAll()
+        popToRoot()
     }
 
-    private func cancelAll() {
-        viewModel.generatedPlans = []
-        viewModel.showResult      = false
-
-        // dismiss itinerary view
-        presentationMode.wrappedValue.dismiss()
-        // then dismiss review screen
-        DispatchQueue.main.async {
-            presentationMode.wrappedValue.dismiss()
+    private func popToRoot() {
+        guard
+            let windowScene = UIApplication.shared.connectedScenes
+                .first as? UIWindowScene,
+            let rootVC = windowScene.windows
+                .first(where: \.isKeyWindow)?
+                .rootViewController
+        else { return }
+        if let nav = rootVC as? UINavigationController {
+            nav.popToRootViewController(animated: true)
+        } else if let nav = rootVC.findNavigationController() {
+            nav.popToRootViewController(animated: true)
         }
     }
 
@@ -188,3 +187,15 @@ struct ItineraryResultsView: View {
     }
 }
 
+// UINavigationController finder
+private extension UIViewController {
+    func findNavigationController() -> UINavigationController? {
+        if let nav = self as? UINavigationController { return nav }
+        for child in children {
+            if let found = child.findNavigationController() {
+                return found
+            }
+        }
+        return nil
+    }
+}

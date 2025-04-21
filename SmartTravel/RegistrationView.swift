@@ -3,8 +3,6 @@
 //  SmartTravel
 //
 //  Created by Amitabh Singh on 4/19/25.
-//
-
 
 import SwiftUI
 
@@ -23,74 +21,21 @@ struct RegistrationView: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 16) {
-                Text("Create Account")
-                    .font(.largeTitle).bold()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 24)
-                    .padding(.top, 8)
+            ZStack {
+                Color(.systemGroupedBackground)
+                    .ignoresSafeArea()
 
-                ScrollView {
-                    VStack(spacing: 12) {
-                        TextField("First Name", text: $vm.firstName)
-                            .autocapitalization(.words)
-                            .disableAutocorrection(true)
-                            .textContentType(nil)
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 32) {
+                        header
 
-                        TextField("Last Name", text: $vm.lastName)
-                            .autocapitalization(.words)
-                            .disableAutocorrection(true)
-                            .textContentType(nil)
+                        inputCard
 
-                        TextField("username", text: $vm.username)
-                            .autocapitalization(.none)
-                            .disableAutocorrection(true)
-                            .keyboardType(.asciiCapable)
-                            .textContentType(nil)
-                            .onChange(of: vm.username) { vm.username = $0.lowercased() }
-
-                        TextField("Email Address", text: $vm.email)
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
-                            .disableAutocorrection(true)
-                            .textContentType(nil)
-
-                        NoAutofillTextField(
-                            text: $vm.password,
-                            placeholder: "Password",
-                            isSecure: true
-                        )
-
-                        NoAutofillTextField(
-                            text: $vm.confirmPassword,
-                            placeholder: "Confirm Password",
-                            isSecure: true
-                        )
+                        signUpButton
                     }
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(8)
-                    .padding(.horizontal, 24)
-                    .padding(.top, 8)
+                    .padding(.horizontal)
+                    .padding(.top, 16)
                 }
-
-                Button {
-                    vm.register()
-                    if vm.isLoggedIn { dismiss() }
-                } label: {
-                    Text("Sign Up")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(canRegister ? Color.green : Color.gray)
-                        .cornerRadius(10)
-                }
-                .disabled(!canRegister)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 20)
-
-                Spacer()
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -100,4 +45,81 @@ struct RegistrationView: View {
             }
         }
     }
+
+    private var header: some View {
+        Text("Create Account")
+            .font(.largeTitle)
+            .fontWeight(.bold)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    private var inputCard: some View {
+        VStack(spacing: 16) {
+            field(icon: "person.circle", placeholder: "First Name", text: $vm.firstName)
+            field(icon: "person.circle.fill", placeholder: "Last Name", text: $vm.lastName)
+            field(icon: "at", placeholder: "Username", text: $vm.username)
+            field(icon: "envelope", placeholder: "Email Address", text: $vm.email, keyboard: .emailAddress)
+            secureField(icon: "lock", placeholder: "Password", text: $vm.password)
+            secureField(icon: "lock.rotation", placeholder: "Confirm Password", text: $vm.confirmPassword)
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+        )
+    }
+
+    private var signUpButton: some View {
+        Button(action: {
+            vm.register()
+            if vm.isLoggedIn { dismiss() }
+        }) {
+            Text("Sign Up")
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(canRegister ? Color.green : Color.gray)
+                .cornerRadius(12)
+        }
+        .disabled(!canRegister)
+    }
+
+    private func field(icon: String,
+                       placeholder: String,
+                       text: Binding<String>,
+                       keyboard: UIKeyboardType = .default) -> some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(.blue)
+            TextField(placeholder, text: text)
+                .keyboardType(keyboard)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+        }
+        .padding()
+        .background(Color(.secondarySystemFill))
+        .cornerRadius(8)
+    }
+
+    private func secureField(icon: String,
+                             placeholder: String,
+                             text: Binding<String>) -> some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(.blue)
+            SecureField(placeholder, text: text)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+        }
+        .padding()
+        .background(Color(.secondarySystemFill))
+        .cornerRadius(8)
+    }
+}
+
+#Preview {
+    let ctx = PersistenceController.preview.container.viewContext
+    RegistrationView(vm: AuthViewModel(context: ctx))
 }

@@ -4,7 +4,6 @@
 //
 //  Created by Amitabh Singh on 4/19/25.
 
-
 import SwiftUI
 import CoreData
 
@@ -12,9 +11,10 @@ struct MyTripsView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject private var tripVM: TripViewModel
 
+    // Newest trips first
     @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Trip.startDate, ascending: true)],
-        animation: .default
+      sortDescriptors: [NSSortDescriptor(keyPath: \Trip.startDate, ascending: false)],
+      animation: .default
     )
     private var trips: FetchedResults<Trip>
 
@@ -43,16 +43,12 @@ struct MyTripsView: View {
             Image(systemName: "mappin.and.ellipse")
                 .font(.system(size: 48))
                 .foregroundColor(.gray)
-
             Text("No Trips Yet")
                 .font(.title2).bold()
-
             Text("Time to plan your next journey.\nThe world is waiting for you to explore!")
-                .font(.body)
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
                 .padding(.horizontal, 40)
-
             Button("Start New Trip", action: onAdd)
                 .padding(.vertical, 14)
                 .frame(maxWidth: 200)
@@ -65,18 +61,20 @@ struct MyTripsView: View {
 
     private var listState: some View {
         List {
-            ForEach(trips) { trip in
+            // Use objectID so we never get `id == nil`
+            ForEach(trips, id: \.objectID) { trip in
                 NavigationLink {
                     ItineraryResultsView(
-                        trip: trip,
-                        initialDestination: nil,
-                        viewModel: tripVM
+                      trip: trip,
+                      initialDestination: nil,
+                      viewModel: tripVM
                     )
                 } label: {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(trip.destination ?? "Untitled")
                             .font(.headline)
-                        if let start = trip.startDate, let end = trip.endDate {
+                        if let start = trip.startDate,
+                           let end   = trip.endDate {
                             Text("\(start, formatter: dateFormatter) – \(end, formatter: dateFormatter)")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
@@ -85,12 +83,15 @@ struct MyTripsView: View {
                     .padding(.vertical, 8)
                 }
             }
-            .onDelete { offsets in
-                withAnimation {
-                    offsets.map { trips[$0] }.forEach(viewContext.delete)
-                    try? viewContext.save()
-                }
-            }
+            .onDelete(perform: deleteTrips)
+        }
+    }
+
+    private func deleteTrips(at offsets: IndexSet) {
+        withAnimation {
+            offsets.map { trips[$0] }
+                   .forEach(viewContext.delete)
+            try? viewContext.save()
         }
     }
 

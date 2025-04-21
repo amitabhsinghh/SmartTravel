@@ -3,16 +3,6 @@
 //  SmartTravel
 //
 //  Created by Amitabh Singh on 4/19/25.
-//
-
-
-// LoginView.swift
-//
-//  LoginView.swift
-//  SmartTravel
-//
-//  Created by Amitabh Singh on 4/19/25.
-//
 
 
 import SwiftUI
@@ -29,13 +19,11 @@ struct LoginView: View {
         VStack(spacing: 20) {
             Spacer()
 
-            // MARK: – Title
             Text("Welcome!")
                 .font(.largeTitle).bold()
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 24)
 
-            // MARK: – Email & Password Fields
             VStack(spacing: 16) {
                 TextField("Email Address or Username", text: $vm.email)
                     .keyboardType(.emailAddress)
@@ -72,14 +60,11 @@ struct LoginView: View {
                 HStack {
                     Spacer()
                     Button("Forgot password?") {
-                        // TODO: reset flow
                     }
                     .font(.footnote)
                 }
             }
             .padding(.horizontal, 24)
-
-            // MARK: – Login Button
             Button(action: vm.login) {
                 Text("Login")
                     .foregroundColor(.white)
@@ -90,7 +75,6 @@ struct LoginView: View {
             }
             .padding(.horizontal, 24)
 
-            // MARK: – Register Link
             HStack(spacing: 4) {
                 Text("Not a member?")
                 Button("Register now") {
@@ -98,36 +82,17 @@ struct LoginView: View {
                 }
             }
             .font(.footnote)
-            .sheet(isPresented: $showRegister) {
-                RegistrationView(vm: vm)
-                    .environment(\.managedObjectContext, viewContext)
-            }
 
             Spacer()
-
-            // MARK: – Social Login
-            Text("Or continue with")
-                .font(.footnote)
-
-            HStack(spacing: 24) {
-                Button { /* Google OAuth */ } label: {
-                    Image("googleIcon")
-                }
-                Button { /* Apple OAuth */ } label: {
-                    Image("appleIcon")
-                }
-                Button { /* Facebook OAuth */ } label: {
-                    Image("facebookIcon")
-                }
-            }
-
-            Spacer()
+        }
+        .sheet(isPresented: $showRegister) {
+            RegistrationView(vm: vm)
+                .environment(\.managedObjectContext, viewContext)
         }
     }
 }
 
 #Preview {
-  // we need a context just so the VM init compiles:
-  let ctx = PersistenceController.preview.container.viewContext
-  LoginView(vm: AuthViewModel(context: ctx))
+    let ctx = PersistenceController.preview.container.viewContext
+    LoginView(vm: AuthViewModel(context: ctx))
 }

@@ -3,12 +3,12 @@
 //  SmartTravel
 //
 //  Created by Amitabh Singh on 4/20/25.
-//
+
 
 import Foundation
 
 enum GeminiService {
-    private static let apiKey = ""
+   private static let apiKey = ""
     private static let model  = "gemini-2.0-flash"
     private static let url = URL(string:
       "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent?key=\(apiKey)"
@@ -42,7 +42,6 @@ enum GeminiService {
         }
     }
 
-    /// Sends a plain‑text prompt to Gemini and returns the raw text response.
     static func generateItinerary(
         prompt: String,
         debugPrint: Bool = false
@@ -84,4 +83,5 @@ enum GeminiService {
         return txt
     }
 }
+
 

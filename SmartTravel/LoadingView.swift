@@ -6,9 +6,8 @@
 
 
 import SwiftUI
+import UIKit  // for popToRoot()
 
-/// Animated “building trip…” screen that appears while the itinerary
-/// is being generated.
 struct LoadingView: View {
     @ObservedObject var viewModel: TripViewModel
 
@@ -28,6 +27,7 @@ struct LoadingView: View {
 
     var body: some View {
         VStack(spacing: 28) {
+            // Title
             VStack(spacing: 4) {
                 Text("Crafting Your")
                     .font(.title2)
@@ -58,10 +58,6 @@ struct LoadingView: View {
                         .font(.system(size: 30))
                         .foregroundStyle(.blue)
                         .rotationEffect(.degrees(airplaneAngle))
-                        .offset(
-                            x: 50 * cos(airplaneAngle * .pi / 180),
-                            y: 50 * sin(airplaneAngle * .pi / 180)
-                        )
                 }
                 .frame(width: 120, height: 120)
                 .padding(.vertical, 16)
@@ -96,8 +92,10 @@ struct LoadingView: View {
             Button(role: .destructive) {
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                 viewModel.cancelGeneration()
+                popToRoot()
             } label: {
                 Text("Cancel")
+                    .font(.headline)
                     .padding(.vertical, 6)
             }
             .buttonStyle(.plain)
@@ -106,6 +104,7 @@ struct LoadingView: View {
         .onAppear { startAnimations() }
         .onDisappear { tipTimer?.invalidate() }
     }
+
 
     private func startAnimations() {
         currentTip = travelTips.randomElement() ?? "Enjoy your adventure!"
@@ -118,5 +117,30 @@ struct LoadingView: View {
                 currentTip = travelTips.randomElement() ?? currentTip
             }
         }
+    }
+
+    private func popToRoot() {
+        guard
+            let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+            let rootVC = windowScene.windows.first(where: \.isKeyWindow)?.rootViewController
+        else { return }
+
+        if let nav = rootVC as? UINavigationController {
+            nav.popToRootViewController(animated: true)
+        } else if let nav = rootVC.findNavigationController() {
+            nav.popToRootViewController(animated: true)
+        }
+    }
+}
+
+private extension UIViewController {
+    func findNavigationController() -> UINavigationController? {
+        if let nav = self as? UINavigationController { return nav }
+        for child in children {
+            if let found = child.findNavigationController() {
+                return found
+            }
+        }
+        return nil
     }
 }
