@@ -11,13 +11,11 @@ struct HomeView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @Environment(\.managedObjectContext) private var viewContext
 
-    // MARK: – Wizard state
     @State private var showSearch    = false
     @State private var showTravelers = false
     @State private var showBudget    = false
     @State private var showDates     = false
 
-    // MARK: – Collected data
     @State private var chosenDestination = ""
     @State private var chosenParty: TravelParty?
     @State private var chosenBudget: BudgetChoice?
@@ -88,22 +86,20 @@ struct HomeView: View {
                     )
                     .hidden()
                 }
-                // We *do not* call .navigationBarHidden(true) here,
-                // so child pushes (including saved itineraries) get back arrows automatically.
             }
             .tabItem {
                 Label("My Trips", systemImage: "suitcase.fill")
             }
 
             // ───────────────────────────────────────────
-            // Discover Tab
+            // Discover Tab (WIll be added later)
             // ───────────────────────────────────────────
-            NavigationView {
-                Text("Discover")
-            }
-            .tabItem {
-                Label("Discover", systemImage: "globe")
-            }
+//            NavigationView {
+//                Text("Discover")
+//            }
+//            .tabItem {
+//                Label("Discover", systemImage: "globe")
+//            }
 
             // ───────────────────────────────────────────
             // Profile Tab

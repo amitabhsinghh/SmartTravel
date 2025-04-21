@@ -9,6 +9,7 @@ import CoreData
 import UIKit  // for popToRoot()
 
 struct ItineraryResultsView: View {
+    @EnvironmentObject private var authVM: AuthViewModel
     let trip: Trip?
     let initialDestination: String?
     @ObservedObject var viewModel: TripViewModel
@@ -32,7 +33,7 @@ struct ItineraryResultsView: View {
                     Button("Cancel", action: popToRoot)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save",   action: didSave)
+                    Button("Save", action: didSave)
                 }
             } else {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -47,6 +48,7 @@ struct ItineraryResultsView: View {
         }
     }
 
+    // ── Day picker ────────────────────────────────────
     private var daySelector: some View {
         let plans = viewModel.generatedPlans
         return ScrollView(.horizontal, showsIndicators: false) {
@@ -65,7 +67,6 @@ struct ItineraryResultsView: View {
                     .onTapGesture { selectedDay = idx }
                 }
                 if trip == nil {
-                    // allow adding days in new‑trip flow if needed
                     Button { } label: {
                         Image(systemName: "plus.circle")
                             .font(.title2)
@@ -78,6 +79,7 @@ struct ItineraryResultsView: View {
         }
     }
 
+    // ── Timeline ─────────────────────────────────────
     private var timeline: some View {
         let plans = viewModel.generatedPlans
         guard !plans.isEmpty, selectedDay < plans.count else {
@@ -90,7 +92,6 @@ struct ItineraryResultsView: View {
                 LazyVStack(spacing: 24) {
                     ForEach(Array(events.enumerated()), id: \.offset) { idx, event in
                         NavigationLink {
-                            // Push into your detail screen
                             ActivityDetailView(event: event)
                         } label: {
                             HStack(alignment: .top, spacing: 12) {
@@ -129,6 +130,7 @@ struct ItineraryResultsView: View {
         .padding(.top, 4)
     }
 
+    // MARK: – Helpers
     private var navigationTitle: String {
         if let trip = trip {
             return trip.destination ?? ""
@@ -138,9 +140,10 @@ struct ItineraryResultsView: View {
     }
 
     private func loadIfExisting() {
-        guard let trip = trip,
-              let data = trip.details,
-              let plans = try? JSONDecoder().decode([DayPlan].self, from: data)
+        guard
+            let trip = trip,
+            let data = trip.details,
+            let plans = try? JSONDecoder().decode([DayPlan].self, from: data)
         else { return }
 
         viewModel.generatedPlans = plans
@@ -149,6 +152,8 @@ struct ItineraryResultsView: View {
 
     private func didSave() {
         let newTrip = Trip(context: viewContext)
+        // Associate the trip with the current user
+        newTrip.userId = authVM.currentUser?.id?.uuidString
         newTrip.destination = initialDestination
         if let firstDate = viewModel.generatedPlans.first?.date,
            let d1 = isoFormatter.date(from: firstDate) {
@@ -167,12 +172,10 @@ struct ItineraryResultsView: View {
 
     private func popToRoot() {
         guard
-            let windowScene = UIApplication.shared.connectedScenes
-                .first as? UIWindowScene,
-            let rootVC = windowScene.windows
-                .first(where: \.isKeyWindow)?
-                .rootViewController
+            let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+            let rootVC = windowScene.windows.first(where: \.isKeyWindow)?.rootViewController
         else { return }
+
         if let nav = rootVC as? UINavigationController {
             nav.popToRootViewController(animated: true)
         } else if let nav = rootVC.findNavigationController() {
@@ -199,3 +202,4 @@ private extension UIViewController {
         return nil
     }
 }
+

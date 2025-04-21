@@ -10,15 +10,22 @@ import CoreData
 struct MyTripsView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject private var tripVM: TripViewModel
+    @EnvironmentObject private var authVM: AuthViewModel
 
-    // Newest trips first
+    // Fetch all trips, then filter to only the current user’s
     @FetchRequest(
       sortDescriptors: [NSSortDescriptor(keyPath: \Trip.startDate, ascending: false)],
       animation: .default
     )
-    private var trips: FetchedResults<Trip>
+    private var allTrips: FetchedResults<Trip>
 
     let onAdd: () -> Void
+
+    // Only show trips belonging to the logged‑in user
+    private var trips: [Trip] {
+        guard let uid = authVM.currentUser?.id?.uuidString else { return [] }
+        return allTrips.filter { $0.userId == uid }
+    }
 
     var body: some View {
         Group {
@@ -43,12 +50,15 @@ struct MyTripsView: View {
             Image(systemName: "mappin.and.ellipse")
                 .font(.system(size: 48))
                 .foregroundColor(.gray)
+
             Text("No Trips Yet")
                 .font(.title2).bold()
+
             Text("Time to plan your next journey.\nThe world is waiting for you to explore!")
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
                 .padding(.horizontal, 40)
+
             Button("Start New Trip", action: onAdd)
                 .padding(.vertical, 14)
                 .frame(maxWidth: 200)
@@ -61,7 +71,6 @@ struct MyTripsView: View {
 
     private var listState: some View {
         List {
-            // Use objectID so we never get `id == nil`
             ForEach(trips, id: \.objectID) { trip in
                 NavigationLink {
                     ItineraryResultsView(
@@ -69,13 +78,14 @@ struct MyTripsView: View {
                       initialDestination: nil,
                       viewModel: tripVM
                     )
+                    .environmentObject(authVM)
                 } label: {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(trip.destination ?? "Untitled")
                             .font(.headline)
                         if let start = trip.startDate,
                            let end   = trip.endDate {
-                            Text("\(start, formatter: dateFormatter) – \(end, formatter: dateFormatter)")
+                            Text("\(start, formatter: dateFormatter) – \(end, formatter: dateFormatter)")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
@@ -89,8 +99,8 @@ struct MyTripsView: View {
 
     private func deleteTrips(at offsets: IndexSet) {
         withAnimation {
-            offsets.map { trips[$0] }
-                   .forEach(viewContext.delete)
+            let toDelete = offsets.map { trips[$0] }
+            toDelete.forEach(viewContext.delete)
             try? viewContext.save()
         }
     }
@@ -101,3 +111,4 @@ struct MyTripsView: View {
         return df
     }
 }
+

@@ -3,7 +3,6 @@
 //  SmartTravel
 //
 //  Created by Amitabh Singh on 4/19/25.
-//
 
 
 import Foundation
@@ -11,36 +10,36 @@ import CoreData
 
 @MainActor
 class AuthViewModel: ObservableObject {
-  // input fields
-  @Published var firstName = ""
-  @Published var lastName  = ""
-  @Published var username  = ""
-  @Published var email     = ""
-  @Published var password  = ""
-  @Published var confirmPassword = ""
+    // MARK: – Input fields
+    @Published var firstName        = ""
+    @Published var lastName         = ""
+    @Published var username         = ""
+    @Published var email            = ""
+    @Published var password         = ""
+    @Published var confirmPassword  = ""
 
-  @Published var isLoggedIn = false
-  @Published var currentUser: User?
+    @Published var isLoggedIn = false
+    @Published var currentUser: User?
 
-  private let context: NSManagedObjectContext
+    private let context: NSManagedObjectContext
 
-  init(context: NSManagedObjectContext) {
-    self.context = context
-    self.isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
+    init(context: NSManagedObjectContext) {
+        self.context    = context
+        self.isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
 
-    if isLoggedIn {
-      // load the saved user (here we just grab the first one)
-      let req: NSFetchRequest<User> = User.fetchRequest()
-      req.fetchLimit = 1
-      if let user = (try? context.fetch(req))?.first {
-        currentUser = user
-      }
+        if isLoggedIn {
+            // load the saved user (here we just grab the first one)
+            let req: NSFetchRequest<User> = User.fetchRequest()
+            req.fetchLimit = 1
+            if let user = (try? context.fetch(req))?.first {
+                currentUser = user
+            }
+        }
     }
-  }
 
+    // MARK: – Login
     func login() {
         let req: NSFetchRequest<User> = User.fetchRequest()
-        // match *either* email or username (case‑insensitive) AND password
         req.predicate = NSPredicate(
           format: "((email   ==[c] %@) OR (username ==[c] %@)) AND password == %@",
           email, email, password
@@ -58,58 +57,70 @@ class AuthViewModel: ObservableObject {
         }
     }
 
-  func register() {
-    // basic validation
-    guard !firstName.isEmpty,
-          !lastName.isEmpty,
-          !username.isEmpty,
-          !email.isEmpty,
-          !password.isEmpty,
-          password == confirmPassword else {
-      print("❌ validation failed")
-      return
+    // MARK: – Register
+    func register() {
+        // basic validation
+        guard !firstName.isEmpty,
+              !lastName.isEmpty,
+              !username.isEmpty,
+              !email.isEmpty,
+              !password.isEmpty,
+              password == confirmPassword else {
+          print("❌ validation failed")
+          return
+        }
+
+        // ensure username is unique
+        let userReq: NSFetchRequest<User> = User.fetchRequest()
+        userReq.predicate = NSPredicate(format: "username == %@", username)
+        if let matches = try? context.fetch(userReq), !matches.isEmpty {
+          print("❌ username taken")
+          return
+        }
+
+        let newUser = User(context: context)
+        newUser.id         = UUID()
+        newUser.firstName  = firstName
+        newUser.lastName   = lastName
+        newUser.username   = username
+        newUser.email      = email
+        newUser.password   = password  // ⚠️ hash in prod!
+
+        do {
+          try context.save()
+          didAuthenticate(newUser)
+        } catch {
+          print("❌ could not save new user:", error)
+        }
     }
 
-    // ensure username is unique
-    let userReq: NSFetchRequest<User> = User.fetchRequest()
-    userReq.predicate = NSPredicate(format: "username == %@", username)
-    if let matches = try? context.fetch(userReq), !matches.isEmpty {
-      print("❌ username taken")
-      return
+    // MARK: – Change Password
+    func changePassword(to newPassword: String) {
+        guard let user = currentUser else { return }
+        user.password = newPassword
+        try? context.save()
     }
 
-    let newUser = User(context: context)
-    newUser.id = UUID()
-    newUser.firstName = firstName
-    newUser.lastName  = lastName
-    newUser.username  = username
-    newUser.email     = email
-    newUser.password  = password  // ⚠️ in prod, hash your passwords!
+    // MARK: – Logout & Reset
+    func logout() {
+        // Clear persisted login state
+        UserDefaults.standard.set(false, forKey: "isLoggedIn")
+        isLoggedIn  = false
+        currentUser = nil
 
-    do {
-      try context.save()
-      didAuthenticate(newUser)
-    } catch {
-      print("❌ could not save new user:", error)
+        // Clear all input fields
+        firstName       = ""
+        lastName        = ""
+        username        = ""
+        email           = ""
+        password        = ""
+        confirmPassword = ""
     }
-  }
 
-  func changePassword(to newPassword: String) {
-    guard let user = currentUser else { return }
-    user.password = newPassword
-    try? context.save()
-  }
-
-  private func didAuthenticate(_ user: User) {
-    currentUser = user
-    isLoggedIn  = true
-    UserDefaults.standard.set(true, forKey: "isLoggedIn")
-  }
-
-  func logout() {
-    UserDefaults.standard.set(false, forKey: "isLoggedIn")
-    isLoggedIn = false
-    currentUser = nil
-  }
+    // MARK: – Helpers
+    private func didAuthenticate(_ user: User) {
+        currentUser = user
+        isLoggedIn  = true
+        UserDefaults.standard.set(true, forKey: "isLoggedIn")
+    }
 }
-
